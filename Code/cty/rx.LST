@@ -1,0 +1,272 @@
+C51 COMPILER V9.01   RX                                                                    06/06/2016 18:23:02 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE RX
+OBJECT MODULE PLACED IN rx.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE rx.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <STC89Cxx.h>
+   2                  
+   3          #define uchar  unsigned char 
+   4          #define uint   unsigned int
+   5          
+   6          
+   7          unsigned char buf,num,i,temp;
+   8          bit check,sending,send_flag;
+   9          unsigned char pdata pack[241];
+  10          
+  11          void send(unsigned char d)      //发送一个字节的数据，形参d即为待发送数据。
+  12          {
+  13   1       SBUF=d; //将数据写入到串口缓冲
+  14   1       sending=1;  //设置发送标志
+  15   1       while(sending); //等待发送完毕
+  16   1      }
+  17          
+  18          void main (void)  
+  19          { 
+  20   1        unsigned char j,k; 
+  21   1        RCAP2H=0xff;  
+  22   1        RCAP2L=0xfd;
+  23   1      //串口相关设定
+  24   1        SCON=0x50;     //串口工作在模式1
+  25   1        ES=1;         //串行中断允许
+  26   1        T2CON=0x34;  //TF2 EXF2 RCLK TCLK EXEN2 TR2 C/T2 CP/RL2    启动定时器2
+  27   1        
+  28   1        EA=1;         //允许中断  
+  29   1        while(1){
+  30   2          if (send_flag)
+  31   2          {
+  32   3            for (i = 0; i < 22; i++)
+  33   3            {
+  34   4              if (pack[i]==0xFA && pack[i+1]>=0xA0 && pack[i+1]<=0xF9)
+  35   4              {
+  36   5                temp=i;break;
+  37   5              }
+  38   4            }
+  39   3            for (i = 0; i < 10; i++)
+  40   3            {
+  41   4              j=9*i;
+  42   4              k=22*i+1;
+  43   4                pack[j]=pack[temp+k];
+  44   4                if (pack[temp+k+4]>0x18)
+  45   4                {
+  46   5                  pack[j+1]=0;pack[j+2]=0;
+  47   5                }else{
+  48   5                  pack[j+1]=pack[temp+k+3];pack[j+2]=pack[temp+k+4];
+  49   5                }
+  50   4      
+  51   4                if (pack[temp+k+8]>0x18)
+  52   4                {
+  53   5                  pack[j+3]=0;pack[j+4]=0;
+  54   5                }else{
+  55   5                  pack[j+3]=pack[temp+k+7];pack[j+4]=pack[temp+k+8];
+C51 COMPILER V9.01   RX                                                                    06/06/2016 18:23:02 PAGE 2   
+
+  56   5                }
+  57   4      
+  58   4                if (pack[temp+k+12]>0x18)
+  59   4                {
+  60   5                  pack[j+5]=0;pack[j+6]=0;
+  61   5                }else{
+  62   5                  pack[j+5]=pack[temp+k+11];pack[j+6]=pack[temp+k+12];
+  63   5                }
+  64   4      
+  65   4                if (pack[temp+k+16]>0x18)
+  66   4                {
+  67   5                  pack[j+7]=0;pack[j+8]=0;
+  68   5                }else{
+  69   5                  pack[j+7]=pack[temp+k+15];pack[j+8]=pack[temp+k+16];
+  70   5                }
+  71   4            }
+  72   3            for (i = 0; i < 90; i++)
+  73   3            {
+  74   4              send(pack[i]);
+  75   4            }
+  76   3            send_flag=0;
+  77   3            REN=1;
+  78   3          }
+  79   2        }
+  80   1      }  
+  81          
+  82          
+  83                
+  84                // //第一组数据，从temp开始
+  85                // pack[0]=pack[temp+1];
+  86                // if (pack[temp+5]>0x18)
+  87                // {
+  88                //   pack[1]=0;pack[2]=0;zeros1++;
+  89                // }else{
+  90                //   pack[1]=pack[temp+4];pack[2]=pack[temp+5];
+  91                // }
+  92                // if (pack[temp+9]>0x18)
+  93                // {
+  94                //   pack[3]=0;pack[4]=0;zeros1++;
+  95                // }else{
+  96                //   pack[3]=pack[temp+8];pack[4]=pack[temp+9];
+  97                // }
+  98                // if (pack[temp+13]>0x18)
+  99                // {
+ 100                //   pack[5]=0;pack[6]=0;zeros1++;
+ 101                // }else{
+ 102                //   pack[5]=pack[temp+12];pack[6]=pack[temp+13];
+ 103                // }
+ 104                // if (pack[temp+17]>0x18)
+ 105                // {
+ 106                //   pack[7]=0;pack[8]=0;zeros1++;
+ 107                // }else{
+ 108                //   pack[7]=pack[temp+16];pack[8]=pack[temp+17];
+ 109                // }
+ 110                // //第二组数据，从temp+22开始
+ 111                // pack[9]=pack[temp+23];
+ 112                // if (pack[temp+27]>0x18)
+ 113                // {
+ 114                //   pack[10]=0;pack[11]=0;zeros2++;
+ 115                // }else{
+ 116                //   pack[10]=pack[temp+26];pack[11]=pack[temp+27];
+ 117                // }
+C51 COMPILER V9.01   RX                                                                    06/06/2016 18:23:02 PAGE 3   
+
+ 118                // if (pack[temp+31]>0x18)
+ 119                // {
+ 120                //   pack[12]=0;pack[13]=0;zeros2++;
+ 121                // }else{
+ 122                //   pack[12]=pack[temp+30];pack[13]=pack[temp+31];
+ 123                // }
+ 124                // if (pack[temp+35]>0x18)
+ 125                // {
+ 126                //   pack[14]=0;pack[15]=0;zeros2++;
+ 127                // }else{
+ 128                //   pack[14]=pack[temp+34];pack[15]=pack[temp+35];
+ 129                // }
+ 130                // if (pack[temp+39]>0x18)
+ 131                // {
+ 132                //   pack[16]=0;pack[17]=0;zeros2++;
+ 133                // }else{
+ 134                //   pack[16]=pack[temp+38];pack[17]=pack[temp+39];
+ 135                // }
+ 136                // //第三组数据，从temp+44开始
+ 137                // pack[18]=pack[temp+45];
+ 138                // if (pack[temp+49]>0x18)
+ 139                // {
+ 140                //   pack[19]=0;pack[20]=0;zeros3++;
+ 141                // }else{
+ 142                //   pack[19]=pack[temp+48];pack[20]=pack[temp+49];
+ 143                // }
+ 144                // if (pack[temp+53]>0x18)
+ 145                // {
+ 146                //   pack[21]=0;pack[22]=0;zeros3++;
+ 147                // }else{
+ 148                //   pack[21]=pack[temp+52];pack[22]=pack[temp+53];
+ 149                // }
+ 150                // if (pack[temp+57]>0x18)
+ 151                // {
+ 152                //   pack[23]=0;pack[24]=0;zeros3++;
+ 153                // }else{
+ 154                //   pack[23]=pack[temp+56];pack[24]=pack[temp+57];
+ 155                // }
+ 156                // if (pack[temp+61]>0x18)
+ 157                // {
+ 158                //   pack[25]=0;pack[26]=0;zeros3++;
+ 159                // }else{
+ 160                //   pack[25]=pack[temp+60];pack[26]=pack[temp+61];
+ 161                // }
+ 162                // //第四组数据，从temp+66开始
+ 163                // pack[27]=pack[temp+67];
+ 164                // if (pack[temp+71]>0x18)
+ 165                // {
+ 166                //   pack[28]=0;pack[29]=0;zeros4++;
+ 167                // }else{
+ 168                //   pack[28]=pack[temp+70];pack[29]=pack[temp+71];
+ 169                // }
+ 170                // if (pack[temp+75]>0x18)
+ 171                // {
+ 172                //   pack[30]=0;pack[31]=0;zeros4++;
+ 173                // }else{
+ 174                //   pack[30]=pack[temp+74];pack[31]=pack[temp+75];
+ 175                // }
+ 176                // if (pack[temp+79]>0x18)
+ 177                // {
+ 178                //   pack[32]=0;pack[33]=0;zeros4++;
+ 179                // }else{
+C51 COMPILER V9.01   RX                                                                    06/06/2016 18:23:02 PAGE 4   
+
+ 180                //   pack[32]=pack[temp+78];pack[33]=pack[temp+79];
+ 181                // }
+ 182                // if (pack[temp+83]>0x18)
+ 183                // {
+ 184                //   pack[34]=0;pack[35]=0;zeros4++;
+ 185                // }else{
+ 186                //   pack[34]=pack[temp+82];pack[35]=pack[temp+83];
+ 187                // }
+ 188          
+ 189                // if (zeros1!=4)
+ 190                // {
+ 191                //   for (i = 0; i < 9; i++)
+ 192                //   {
+ 193                //     send(pack[i]);
+ 194                //   }
+ 195                // }
+ 196                //       if (zeros2!=4)
+ 197                // {
+ 198                //   for (i = 9; i < 18; i++)
+ 199                //   {
+ 200                //     send(pack[i]);
+ 201                //   }
+ 202                // }
+ 203                //       if (zeros3!=4)
+ 204                // {
+ 205                //   for (i = 18; i < 27; i++)
+ 206                //   {
+ 207                //     send(pack[i]);
+ 208                //   }
+ 209                // }
+ 210                // zeros1=0;
+ 211                // zeros2=0;
+ 212                // zeros3=0;
+ 213          
+ 214          
+ 215          void  serial() interrupt 4 
+ 216          {
+ 217   1        if (RI)
+ 218   1        {
+ 219   2           RI = 0;                //清除串行接受标志位
+ 220   2         buf = SBUF;            //从串口缓冲区取得数据
+ 221   2         pack[num]=buf;
+ 222   2         num++;
+ 223   2         if (num==241)
+ 224   2         {
+ 225   3          REN=0;
+ 226   3          num=0;
+ 227   3          
+ 228   3          send_flag=1;
+ 229   3         
+ 230   3         }
+ 231   2        
+ 232   2        }else{
+ 233   2          TI=0;
+ 234   2          sending=0;
+ 235   2        }
+ 236   1        
+ 237   1      
+ 238   1      }
+ 239          
+ 240          
+ 241          //----------------------------------------------  
+C51 COMPILER V9.01   RX                                                                    06/06/2016 18:23:02 PAGE 5   
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    397    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =    241    ----
+   DATA SIZE        =      4    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      3    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

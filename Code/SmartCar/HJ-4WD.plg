@@ -1,0 +1,55 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Project:</h2>
+C:\Users\chentianyang\Desktop\SmartCar\HJ-4WD.uvproj
+Project File Date:  10/28/2013
+
+<h2>Output:</h2>
+Build target '目标 1'
+compiling main.c...
+MAIN.C(198): error C202: 'movechange': undefined identifier
+MAIN.C(200): error C202: 'movechange': undefined identifier
+MAIN.C(205): error C202: 'movechange': undefined identifier
+MAIN.C(207): error C202: 'm': undefined identifier
+MAIN.C(219): error C202: 'j': undefined identifier
+MAIN.C(220): error C202: 'k': undefined identifier
+MAIN.C(221): error C202: 'j': undefined identifier
+MAIN.C(222): error C202: 'k': undefined identifier
+MAIN.C(224): error C202: 'j': undefined identifier
+MAIN.C(224): error C202: 'j': undefined identifier
+MAIN.C(226): error C202: 'j': undefined identifier
+MAIN.C(226): error C202: 'j': undefined identifier
+MAIN.C(229): error C202: 'k': undefined identifier
+MAIN.C(231): error C202: 'j': undefined identifier
+MAIN.C(231): error C202: 'j': undefined identifier
+MAIN.C(233): error C202: 'j': undefined identifier
+MAIN.C(233): error C202: 'j': undefined identifier
+MAIN.C(236): error C202: 'k': undefined identifier
+MAIN.C(238): error C202: 'j': undefined identifier
+MAIN.C(238): error C202: 'j': undefined identifier
+MAIN.C(240): error C202: 'j': undefined identifier
+MAIN.C(240): error C202: 'j': undefined identifier
+MAIN.C(243): error C202: 'k': undefined identifier
+MAIN.C(245): error C202: 'j': undefined identifier
+MAIN.C(245): error C202: 'j': undefined identifier
+MAIN.C(247): error C202: 'j': undefined identifier
+MAIN.C(247): error C202: 'j': undefined identifier
+目标未创建
+Build target '目标 1'
+compiling main.c...
+MAIN.C(208): error C202: 'm': undefined identifier
+目标未创建
+Build target '目标 1'
+compiling main.c...
+linking...
+Program Size: data=26.1 xdata=241 code=1617
+creating hex file from "HJ-4WD"...
+"HJ-4WD" - 0 Error(s), 0 Warning(s).
+Build target '目标 1'
+compiling main.c...
+linking...
+Program Size: data=26.1 xdata=241 code=1617
+creating hex file from "HJ-4WD"...
+"HJ-4WD" - 0 Error(s), 0 Warning(s).

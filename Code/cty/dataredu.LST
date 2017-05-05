@@ -1,0 +1,156 @@
+C51 COMPILER V9.01   DATAREDU                                                              06/05/2016 15:36:32 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE DATAREDU
+OBJECT MODULE PLACED IN dataredu.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE dataredu.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <STC89Cxx.h>
+   2          unsigned char buf,check,num;
+   3          
+   4          unsigned char laser[9];
+   5          unsigned char pack[23];
+   6          bit sending,check_passed,send_flag;
+   7          void send(unsigned char d);
+   8          
+   9          void init();
+  10          void save_data();
+  11          
+  12          
+  13          
+  14          void main()
+  15          {
+  16   1              unsigned char i;
+  17   1              init();
+  18   1              while(1){
+  19   2                      if (send_flag)
+  20   2                      {
+  21   3            send_flag=0;
+  22   3      
+  23   3                              for (i = 0; i < 22; i++)
+  24   3                              {
+  25   4                                              send(laser[i]); 
+  26   4                              }
+  27   3                        SCON=0x50;
+  28   3              
+  29   3                      }
+  30   2              }
+  31   1      
+  32   1      }
+  33          
+  34          
+  35          
+  36          void init(void)                         //串口初始化
+  37          {
+  38   1              EA=0; //暂时关闭中断
+  39   1      //T2定时器相关设定
+  40   1              RCAP2H=0xff;  
+  41   1              RCAP2L=0xfd;
+  42   1      //串口相关设定
+  43   1              SCON=0x50;     //串口工作在模式1
+  44   1              ES=0;         //串行中断允许
+  45   1              T2CON=0x34;  //TF2 EXF2 RCLK TCLK EXEN2 TR2 C/T2 CP/RL2    启动定时器2
+  46   1      //开总中断
+  47   1              EA=1;         //允许中断
+  48   1      
+  49   1      } 
+  50          
+  51          // void save_data(){
+  52          //      laser[row][0]=pack[1];
+  53                  
+  54          //      if (pack[5]>=0x18)
+  55          //      {
+C51 COMPILER V9.01   DATAREDU                                                              06/05/2016 15:36:32 PAGE 2   
+
+  56          //              laser[row][1]=0;laser[row][2]=0;zeros++;
+  57          //      }else{
+  58          //              laser[row][1]=pack[4];laser[row][2]=pack[5];
+  59          //      }
+  60          //      if (pack[9]>=0x18)
+  61          //      {
+  62          //              laser[row][3]=0;laser[row][4]=0;zeros++;
+  63          //      }else{
+  64          //              laser[row][3]=pack[8];laser[row][4]=pack[9];
+  65          //      }
+  66          //      if (pack[13]>=0x18)
+  67          //      {
+  68          //              laser[row][5]=0;laser[row][6]=0;zeros++;
+  69          //      }else{
+  70          //              laser[row][5]=pack[12];laser[row][6]=pack[13];
+  71          //      }
+  72          //      if (pack[17]>=0x18)
+  73          //      {
+  74          //              laser[row][7]=0;laser[row][8]=0;zeros++;
+  75          //      }else{
+  76          //              laser[row][7]=pack[16];laser[row][8]=pack[17];
+  77          //      }
+  78          // }
+  79          
+  80          void  serial() interrupt 4 
+  81          {
+  82   1              if (RI)
+  83   1              {
+  84   2                      RI=0;
+  85   2                      buf=SBUF;
+  86   2                      if(check==0&&buf==0xFA)//同时判断count跟收到的数据  
+  87   2            {  
+  88   3                check=1;
+  89   3              
+  90   3            }  
+  91   2            else if(check==1&&buf>=0xA0&&buf<=0xF9)  
+  92   2              {
+  93   3                check=2; check_passed=1; P10=0;
+  94   3                  
+  95   3              }  else 
+  96   2              {
+  97   3                check=0; P10=1;
+  98   3              } 
+  99   2      
+ 100   2              if (check_passed)
+ 101   2              {
+ 102   3                num++;
+ 103   3                pack[num]=buf;
+ 104   3      
+ 105   3                if (num==21)
+ 106   3                {
+ 107   4                  SCON=0x40;
+ 108   4                  check_passed=0;
+ 109   4                  send_flag=1;
+ 110   4                  /* code */
+ 111   4                }
+ 112   3      
+ 113   3                /* code */
+ 114   3              }               
+ 115   2              }else{
+ 116   2                      TI=0;
+ 117   2                      sending=0;
+C51 COMPILER V9.01   DATAREDU                                                              06/05/2016 15:36:32 PAGE 3   
+
+ 118   2              }
+ 119   1      
+ 120   1      }
+ 121          
+ 122          void send(unsigned char d)                //发送一个字节的数据，形参d即为待发送数据。
+ 123          {
+ 124   1       SBUF=d; //将数据写入到串口缓冲
+ 125   1       sending=1;      //设置发送标志
+ 126   1       while(sending); //等待发送完毕
+ 127   1      }
+ 128          
+ 129          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    163    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     35       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      3    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

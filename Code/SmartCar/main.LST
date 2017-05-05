@@ -1,0 +1,295 @@
+C51 COMPILER V9.01   MAIN                                                                  06/08/2016 23:07:12 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1                  #include <STC89Cxx.h>
+   2                  #include <intrins.h>
+   3          
+   4                  #define  ECHO  P24                                 //超声波接口定义
+   5                  #define  TRIG  P25                                 //超声波接口定义
+   6          
+   7              unsigned char timer2;                       //待显示字符。
+   8              unsigned char count1,o_o;
+   9              unsigned char buf,num,i,temp,movechange;
+  10              bit send_flag;
+  11                  volatile unsigned char sending;
+  12                  unsigned char pdata pack[241];
+  13          
+  14              unsigned long S=0;
+  15                  unsigned int  time=0;            
+  16                  unsigned int  timer=0;                  
+  17                                                          
+  18          /************************************************************************/
+  19          //              void delay(unsigned int k)        //延时函数
+  20          // {    
+  21          //      unsigned int x,y;
+  22          //         for(x=0;x<k;x++) 
+  23          //           for(y=0;y<2000;y++);
+  24          // }
+  25          /************************************************************************/
+  26                  void init(void)                         //串口初始化
+  27          {
+  28   1              EA=0; //暂时关闭中断
+  29   1      //T2定时器相关设定
+  30   1              RCAP2H=0xff;  
+  31   1              RCAP2L=0xfd;
+  32   1      //串口相关设定
+  33   1              SCON=0x40;     //串口工作在模式1
+  34   1              ES=1;         //串行中断允许
+  35   1      //定时器T0,T1设定
+  36   1              TMOD=0X11;
+  37   1              TH1=(65536-100)/256;      //100US定时
+  38   1              TL1=(65536-100)%256;
+  39   1              TH0=0;
+  40   1              TL0=0;  
+  41   1      //定时器T0,T1开中断
+  42   1              ET1= 1;
+  43   1              ET0= 1;
+  44   1      //启动定时器T1,T2
+  45   1              TR1= 1;         //启动定时器1
+  46   1              T2CON=0x34;  //TF2 EXF2 RCLK TCLK EXEN2 TR2 C/T2 CP/RL2    启动定时器2
+  47   1      //开总中断
+  48   1              EA=1;         //允许中断
+  49   1      //外部中断初始化
+  50   1              EX0=1;     //开启外部中断0
+  51   1          IT0=1;         //下降沿有效
+  52   1              IE0=0;
+  53   1      }
+  54          
+  55          /************************************************************************/
+C51 COMPILER V9.01   MAIN                                                                  06/08/2016 23:07:12 PAGE 2   
+
+  56              void  StartModule()                       //启动测距信号，给TRIG一个15us的高电平
+  57          {
+  58   1              TRIG=1;                                 
+  59   1              _nop_(); 
+  60   1              _nop_(); 
+  61   1              _nop_(); 
+  62   1              _nop_(); 
+  63   1              _nop_(); 
+  64   1              _nop_(); 
+  65   1              _nop_(); 
+  66   1              _nop_(); 
+  67   1              _nop_(); 
+  68   1              _nop_(); 
+  69   1              _nop_(); 
+  70   1              _nop_(); 
+  71   1              _nop_(); 
+  72   1              _nop_(); 
+  73   1              _nop_(); 
+  74   1              TRIG=0;
+  75   1      }
+  76          /***************************************************/
+  77                  void Count(void)                   //计算距离
+  78          {
+  79   1              while(!ECHO);                  //当RX为零时等待
+  80   1              TR0=1;                         //开启计数
+  81   1              while(ECHO);                       //当RX为1计数并等待
+  82   1              TR0=0;                             //关闭计数
+  83   1              time=TH0*256+TL0;                  //读取脉宽长度
+  84   1              TH0=0;
+  85   1              TL0=0;
+  86   1              S=(time*1.7)/100;        //算出来是CM
+  87   1      }
+  88          
+  89                  void send(unsigned char d)                //发送一个字节的数据，形参d即为待发送数据。
+  90          {
+  91   1       
+  92   1              SBUF=d; //将数据写入到串口缓冲
+  93   1              sending=1;       //设置发送标志
+  94   1              while(sending); //等待发送完毕
+  95   1      }
+  96          /***************************************************/
+  97          //外部中断0中断函数
+  98             void intersvr1(void) interrupt 0 
+  99          {
+ 100   1          count1++;   
+ 101   1      }
+ 102          /***************************************************/
+ 103          //T0定时器中断程序
+ 104                  void timer0() interrupt 1 
+ 105          {       
+ 106   1              
+ 107   1       }
+ 108          /***************************************************/
+ 109          //T1定时器中断程序
+ 110                  void time1()interrupt 3  
+ 111          {       
+ 112   1          TH1=(65536-100)/256;          //100US定时
+ 113   1              TL1=(65536-100)%256;
+ 114   1              timer++;                                  //定时器100US为准。在这个基础上延时
+ 115   1              if (o_o==3)//前行
+ 116   1              {
+ 117   2                      if (timer2<7)
+C51 COMPILER V9.01   MAIN                                                                  06/08/2016 23:07:12 PAGE 3   
+
+ 118   2                      {
+ 119   3                              P10=1;P12=1;P14=1;P16=1;
+ 120   3                      }else{
+ 121   3                              P10=0;P12=0;P14=0;P16=0;
+ 122   3                      }
+ 123   2                      
+ 124   2              } else if (o_o==2)//右转
+ 125   1              {
+ 126   2                      if (timer2<5)
+ 127   2                      {
+ 128   3                              P10=1;P12=1;P15=1;P17=1;
+ 129   3                      }else{
+ 130   3                              P10=0;P12=0;P15=0;P17=0;
+ 131   3                      }
+ 132   2                      
+ 133   2              } else if (o_o==1){//后退
+ 134   2                              P11=1;P13=1;P15=1;P17=1;
+ 135   2              }
+ 136   1              
+ 137   1              timer2++;
+ 138   1              if (timer2>10)
+ 139   1              {
+ 140   2                      timer2=0;
+ 141   2              }
+ 142   1      }
+ 143          /***************************************************/
+ 144          //串口中断函数
+ 145                  void uart(void) interrupt 4             
+ 146          {
+ 147   1              if (RI)
+ 148   1              {
+ 149   2              RI = 0;                //清除串行接受标志位
+ 150   2                      buf = SBUF;            //从串口缓冲区取得数据
+ 151   2                      pack[num]=buf;
+ 152   2                      num++;
+ 153   2                      if (num==241)
+ 154   2                      {
+ 155   3              REN=0;
+ 156   3              num=0;
+ 157   3              send_flag=1;
+ 158   3                      }  
+ 159   2              }else
+ 160   1              {
+ 161   2              TI=0;
+ 162   2              sending=0;
+ 163   2              }
+ 164   1      }
+ 165          /***************************************************/
+ 166                  void main(void)
+ 167          {
+ 168   1              unsigned char j,k,m;
+ 169   1              init();
+ 170   1              while(1)                      
+ 171   1              {
+ 172   2                      if(timer>=1000)   //100MS检测启动检测一次        1000
+ 173   2                      {
+ 174   3                      timer=0;
+ 175   3                              StartModule(); //启动检测
+ 176   3                      Count();                  //计算距离                                                                                                                                                                              
+ 177   3                      if (S<20)//后退
+ 178   3                      {
+ 179   4                              o_o=1;
+C51 COMPILER V9.01   MAIN                                                                  06/08/2016 23:07:12 PAGE 4   
+
+ 180   4                              P10=0;P12=0;P14=0;P16=0;
+ 181   4                              send(count1);
+ 182   4                              send('b');      
+ 183   4                      }
+ 184   3                      else if (S<40)//转向
+ 185   3                      {
+ 186   4                              o_o=2;
+ 187   4                              P11=0;P13=0;P14=0;P16=0;
+ 188   4                              send(count1);
+ 189   4                              send('r');              
+ 190   4                      }
+ 191   3                      else//前行
+ 192   3                      {
+ 193   4                              o_o=3;
+ 194   4                              P11=0;P13=0;P15=0;P17=0;
+ 195   4                              send(count1);
+ 196   4                              send('g');
+ 197   4                      }
+ 198   3                      count1=0;                //清计数       
+ 199   3                      movechange++;
+ 200   3                      }
+ 201   2                      if (movechange==10)
+ 202   2                      {
+ 203   3                              EX0=0;TR1=0;//关外部中断，关T1
+ 204   3                              P10=0;P12=0;P14=0;P16=0;
+ 205   3                              P11=0;P13=0;P15=0;P17=0;//停车
+ 206   3                              movechange=0;
+ 207   3                              REN=1;
+ 208   3                              for (m = 0; m < 11; m++)
+ 209   3                              {
+ 210   4                                      while(!send_flag);
+ 211   4                                      for (i = 0; i < 22; i++)
+ 212   4                              {
+ 213   5                                      if (pack[i]==0xFA && pack[i+1]>=0xA0 && pack[i+1]<=0xF9)
+ 214   5                                      {
+ 215   6                                              temp=i;break;
+ 216   6                                      }
+ 217   5                              }//寻找起始数据包
+ 218   4                              for (i = 0; i < 10; i++)
+ 219   4                              {
+ 220   5                                      j=9*i;
+ 221   5                                      k=22*i+1;
+ 222   5                                      pack[j]=pack[temp+k];
+ 223   5                                      if (pack[temp+k+4]>0x18)
+ 224   5                                      {
+ 225   6                                      pack[j+1]=0;pack[j+2]=0;
+ 226   6                                      }else{
+ 227   6                                      pack[j+1]=pack[temp+k+3];pack[j+2]=pack[temp+k+4];
+ 228   6                                      }
+ 229   5      
+ 230   5                                      if (pack[temp+k+8]>0x18)
+ 231   5                                      {
+ 232   6                                      pack[j+3]=0;pack[j+4]=0;
+ 233   6                                      }else{
+ 234   6                                      pack[j+3]=pack[temp+k+7];pack[j+4]=pack[temp+k+8];
+ 235   6                                      }
+ 236   5      
+ 237   5                                      if (pack[temp+k+12]>0x18)
+ 238   5                                      {
+ 239   6                                      pack[j+5]=0;pack[j+6]=0;
+ 240   6                                      }else{
+ 241   6                                      pack[j+5]=pack[temp+k+11];pack[j+6]=pack[temp+k+12];
+C51 COMPILER V9.01   MAIN                                                                  06/08/2016 23:07:12 PAGE 5   
+
+ 242   6                                      }
+ 243   5      
+ 244   5                                      if (pack[temp+k+16]>0x18)
+ 245   5                                      {
+ 246   6                                      pack[j+7]=0;pack[j+8]=0;
+ 247   6                                      }else{
+ 248   6                                      pack[j+7]=pack[temp+k+15];pack[j+8]=pack[temp+k+16];
+ 249   6                                      }
+ 250   5                              }//数据包整理
+ 251   4                              for (i = 0; i < 90; i++)
+ 252   4                              {
+ 253   5                                      send(pack[i]);
+ 254   5                              }
+ 255   4                              send_flag=0;
+ 256   4                              REN=1;
+ 257   4                              } 
+ 258   3                              REN=0;
+ 259   3                              EX0=1;TR1=1;            
+ 260   3                      }
+ 261   2              }   
+ 262   1      }
+ 263          
+ 264                  
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    803    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =    241    ----
+   DATA SIZE        =     17    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

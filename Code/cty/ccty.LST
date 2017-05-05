@@ -1,0 +1,97 @@
+C51 COMPILER V9.01   CCTY                                                                  05/21/2016 22:37:37 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE CCTY
+OBJECT MODULE PLACED IN ccty.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ccty.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <STC89Cxx.h>
+   2          
+   3          #define uchar unsigned char      
+   4          /*****************************************************************************
+   5          * TH0和TL0是计数器0的高8位和低8位计数器，计算办法:TL0=(65536-C)%256;         *
+   6          * TH0=(65536-C)/256,其中C为所要计数的次数即多长时间产生一次中断；TMOD是计数器*
+   7          * 工作模式选择，0X01表示选用模式1,它有16位计数器，最大计数脉冲为65536,最长时 *
+   8          * 间为1ms*65536=65.536ms                                                     *
+   9          ******************************************************************************/
+  10                           
+  11          
+  12          void init_sys(void);            /*系统初始化函数*/
+  13          
+  14          
+  15          unsigned char ZKB1,ZKB2,ZKB3;
+  16          unsigned char timer;
+  17          
+  18          void main (void)
+  19          {
+  20   1      init_sys();
+  21   1        ZKB1=20;            /*占空比初始值设定*/
+  22   1        ZKB2=50;
+  23   1        ZKB3=80;            /*占空比初始值设定*/
+  24   1        while(1)
+  25   1        {
+  26   2          if (timer>100)
+  27   2          {
+  28   3            timer=0;
+  29   3            /* code */
+  30   3          }
+  31   2        }
+  32   1      }
+  33          
+  34          /******************************************************
+  35          *函数功能：对系统进行初始化，包括定时器初始化和变量初始化*/
+  36          void init_sys(void)            /*系统初始化函数*/
+  37          {
+  38   1        /*定时器初始化*/
+  39   1        TMOD=0x01;
+  40   1        TH0=0xff;
+  41   1        TL0=0xf6;
+  42   1        TR0=1;
+  43   1        ET0=1;
+  44   1        EA=1;
+  45   1      }
+  46          
+  47          
+  48          //延时
+  49          
+  50          /*中断函数*/
+  51          void timer0(void) interrupt 1 
+  52          {
+  53   1        TH0=0xff;                                    /*恢复定时器初始值*/
+  54   1        TL0=0xf6;
+  55   1        if (timer<ZKB1)
+C51 COMPILER V9.01   CCTY                                                                  05/21/2016 22:37:37 PAGE 2   
+
+  56   1          P11=1;
+  57   1        else
+  58   1          P11=0;
+  59   1      
+  60   1        if (timer<ZKB2)
+  61   1          P12=1;
+  62   1        else
+  63   1          P12=0;
+  64   1      
+  65   1        if (timer<ZKB3)
+  66   1          P13=1;
+  67   1        else
+  68   1          P13=0;
+  69   1        
+  70   1        timer++;
+  71   1      }
+  72          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     96    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

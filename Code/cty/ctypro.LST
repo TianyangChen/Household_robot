@@ -1,0 +1,149 @@
+C51 COMPILER V9.01   CTYPRO                                                                05/23/2016 20:16:59 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE CTYPRO
+OBJECT MODULE PLACED IN ctypro.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ctypro.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          
+   2          #include <STC89Cxx.h>
+   3          
+   4          unsigned char str[]="Huazhong university of Sci. & Tech.!";  
+   5          unsigned char cnum[4]={ 1,1,1,1};  
+   6          unsigned char num2[]={ '2','2','2','2','\0'};
+   7          unsigned char num3[]={ 3,3,3,3,'\0'}; 
+   8          unsigned char i;
+   9          unsigned char send_finish;  
+  10          unsigned int timer=0;
+  11          
+  12          void delay_ms(unsigned char xms)  
+  13          {  
+  14   1              unsigned char x,y;  
+  15   1              for(x=xms; x>0; x--)  
+  16   1              for(y=248; y>0; y--);  
+  17   1      }   
+  18          
+  19          void main_init()  
+  20          {   
+  21   1      //串口模式1
+  22   1              SCON=0x50;  //SM0 SM1 SM2 REN TB8 RB8 TI RI 
+  23   1      //T2定时器相关 
+  24   1              RCAP2H=0xff;  
+  25   1              RCAP2L=0xfd;
+  26   1      //T1定时器相关
+  27   1              TMOD=0X11;
+  28   1              TH1=(65536-100)/256;      //100US定时
+  29   1              TL1=(65536-100)%256;
+  30   1              ET1=1;
+  31   1      //串口开中断
+  32   1              ES=1;
+  33   1              EA=1; 
+  34   1      //开T1定时器
+  35   1              TR1=1;  
+  36   1      //开T2定时器
+  37   1              T2CON=0x34;  //TF2 EXF2 RCLK TCLK EXEN2 TR2 C/T2 CP/RL2
+  38   1      
+  39   1      
+  40   1      } 
+  41          
+  42          void send(unsigned char d)                //发送一个字节的数据，形参d即为待发送数据。
+  43          {
+  44   1       SBUF=d; //将数据写入到串口缓冲
+  45   1       send_finish=1;  //设置发送标志
+  46   1       while(send_finish); //等待发送完毕
+  47   1      }
+  48          
+  49          void sendc(unsigned char * pd)
+  50          {
+  51   1       while((*pd)!='\0') //发送字符串，直到遇到0才结束
+  52   1       {
+  53   2        send(*pd); //发送一个字符
+  54   2        pd++;  //移动到下一个字符
+  55   2       }
+C51 COMPILER V9.01   CTYPRO                                                                05/23/2016 20:16:59 PAGE 2   
+
+  56   1      }
+  57          
+  58          void main()  
+  59          {  
+  60   1              main_init(); 
+  61   1              while(1){
+  62   2                      // if (timer>=1000)
+  63   2                      // {
+  64   2                      //      timer=0;
+  65   2                      //      send('c');
+  66   2                      //      /* code */
+  67   2                      // }
+  68   2                      if(P34==0)
+  69   2                      {
+  70   3                              delay_ms(8);
+  71   3                              if(P34==0)
+  72   3                              {
+  73   4                                      while(!P34);
+  74   4                                      send('g');                 
+  75   4                              }
+  76   3                      }
+  77   2                      if(P35==0)
+  78   2                      {
+  79   3                              delay_ms(8);
+  80   3                              if(P35==0)
+  81   3                              {
+  82   4                                      while(!P35);
+  83   4                                      send('r');                         
+  84   4                              }
+  85   3                      }
+  86   2                      if(P36==0)
+  87   2                      {
+  88   3                              delay_ms(8);
+  89   3                              if(P36==0)
+  90   3                              {
+  91   4                                      while(!P36);
+  92   4                                      send('b');                 
+  93   4                              }
+  94   3                      }
+  95   2                      if(P37==0)
+  96   2                      {
+  97   3                              delay_ms(8);
+  98   3                              if(P37==0)
+  99   3                              {
+ 100   4                                      while(!P37);
+ 101   4                                      
+ 102   4                                              sendc(str);                
+ 103   4                              }
+ 104   3                      }
+ 105   2              }         
+ 106   1      } 
+ 107          
+ 108          void uart(void) interrupt 4              //串口发送中断
+ 109          {
+ 110   1      
+ 111   1        TI=0;
+ 112   1        send_finish=0;  //清正在发送标志
+ 113   1       
+ 114   1      }
+ 115          
+ 116          void time1() interrupt 3  
+ 117          {       
+C51 COMPILER V9.01   CTYPRO                                                                05/23/2016 20:16:59 PAGE 3   
+
+ 118   1           TH1=(65536-100)/256;         //100US定时
+ 119   1               TL1=(65536-100)%256;
+ 120   1               timer++;                                 //定时器100US为准。在这个基础上延时
+ 121   1      
+ 122   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    183    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     55    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
